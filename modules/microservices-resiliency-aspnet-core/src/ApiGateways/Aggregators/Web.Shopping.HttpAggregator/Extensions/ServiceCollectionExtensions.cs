@@ -13,14 +13,29 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 // Add the using statements
+using Polly;
+using Polly.Extensions.Http;
+using System.Net.Http;
 
 namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator.Extensions
 {
     public static class ServiceCollectionExtensions
     {
         // Add the GetRetryPolicy method
+        public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+        {
+            return HttpPolicyExtensions.HandleTransientHttpError()
+                .WaitAndRetryAsync(5, retryAttempt =>
+                    TimeSpan.FromMilliseconds(Math.Pow(1.5, retryAttempt) *1000 ),
+                    (_, waitingTime) => {
+                        Log.Logger.Information("---- Retry in {WaitingTime}s", $"{ waitingTime.TotalSeconds:n1}");
+                    });
+        }
 
         // Add the GetCircuitBreakerPolicy method
+        public static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() =>
+            HttpPolicyExtensions.HandleTransientHttpError()
+                .CircuitBreakerAsync(15, TimeSpan.FromSeconds(15));
 
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
@@ -30,7 +45,9 @@ namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator.Extensions
 
             //register HTTP services
             services.AddHttpClient<ICouponService, CouponService>()
-                .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>();
+                .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>()
+                .AddPolicyHandler(GetRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             services.AddHttpClient<IBasketService, BasketService>()
                 .AddHttpMessageHandler<HttpClientAuthorizationDelegatingHandler>();
