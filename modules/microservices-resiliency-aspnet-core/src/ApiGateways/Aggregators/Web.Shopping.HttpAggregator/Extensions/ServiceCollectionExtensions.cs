@@ -25,10 +25,12 @@ namespace Microsoft.eShopOnContainers.Web.Shopping.HttpAggregator.Extensions
         public static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
         {
             return HttpPolicyExtensions.HandleTransientHttpError()
-                .WaitAndRetryAsync(5, retryAttempt =>
-                    TimeSpan.FromMilliseconds(Math.Pow(1.5, retryAttempt) *1000 ),
-                    (_, waitingTime) => {
-                        Log.Logger.Information("---- Retry in {WaitingTime}s", $"{ waitingTime.TotalSeconds:n1}");
+                .WaitAndRetryAsync(5,
+                    retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(1.5, retryAttempt) * 1000),
+                    (_, waitingTime) =>
+                    {
+                        Log.Logger.Information(
+                            "----- Retrying in {WaitingTime}s", $"{ waitingTime.TotalSeconds:n1}");
                     });
         }
 

@@ -2,4 +2,4 @@ export ESHOP_RG=eshop-learn-rg
 export ESHOP_LOCATION=westus
 export ESHOP_AKSNAME=eshop-learn-aks
 export ESHOP_AKSNODERG=
-export ESHOP_LBIP=20.245.143.107
+export ESHOP_LBIP=20.253.140.176
