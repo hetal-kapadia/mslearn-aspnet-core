@@ -31,6 +31,13 @@ namespace Catalog.API.Extensions
     public static class ServiceCollectionExtensions
     {
         // Add AddAppInsights extension method
+        public static IServiceCollection AddAppInsights(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddApplicationInsightsTelemetry(configuration);
+            services.AddApplicationInsightsKubernetesEnricher();
+
+            return services;
+        }
 
         public static IServiceCollection AddCustomMVC(this IServiceCollection services, IConfiguration configuration)
         {

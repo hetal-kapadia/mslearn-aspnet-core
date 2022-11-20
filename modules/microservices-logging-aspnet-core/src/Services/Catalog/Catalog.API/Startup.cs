@@ -31,7 +31,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services
+            services.AddAppInsights(Configuration)
                 .AddGrpc().Services
                 .AddCustomMVC(Configuration)
                 .AddCustomDbContext(Configuration)
