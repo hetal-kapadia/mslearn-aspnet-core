@@ -13,7 +13,7 @@ using Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents.Events;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-//using Prometheus;
+using Prometheus;
 using System;
 using System.IO;
 using System.Net.Mime;
@@ -50,6 +50,20 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             // Add the counter code
+            var counter = Metrics.CreateCounter(
+                "catalogapi_path_counter",
+                "Counts requests to the Catalog API endpoints",
+                new CounterConfiguration
+                {
+                    LabelNames = new[] { "method", "endpoint" }
+                }
+            );
+
+            app.Use((context, next) =>
+            {
+                counter.WithLabels(context.Request.Method, context.Request.Path).Inc();
+                return next();
+            });
 
             var pathBase = Configuration["PATH_BASE"];
 
@@ -69,6 +83,7 @@ namespace Microsoft.eShopOnContainers.Services.Catalog.API
             app.UseRouting();
 
             // Add the metrics server middleware
+            app.UseMetricServer();
 
             app.UseEndpoints(endpoints =>
             {
